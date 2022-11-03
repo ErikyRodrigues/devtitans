@@ -7,5 +7,20 @@ PRODUCT_DEVICE := xgate
 PRODUCT_BRAND := XGateBrand
 PRODUCT_MODEL := XGateModel
 
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.devtitans.name=xgate
+
+PRODUCT_PRODUCT_PROPERTIES += \
+    ro.product.devtitans.version=1.0
+
+PRODUCT_VENDOR_PROPERTIES += \
+    ro.vendor.devtitans.hardware=ModelB
+
+PRODUCT_COPY_FILES += \
+    device/devtitans/xgate/bootanimation.zip:product/media/bootanimation.zip
+
+# Seta o diretório de overlays
+PRODUCT_PACKAGE_OVERLAYS = device/devtitans/xgate/overlay
+
 PRODUCT_PACKAGES += \
     hello_c
