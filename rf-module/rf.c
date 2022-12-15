@@ -2,8 +2,8 @@
 #include <linux/usb.h>
 #include <linux/slab.h>
 
-MODULE_AUTHOR("DevTITANS <devtitans@icomp.ufam.edu.br> (Adapted by Roger)");
-MODULE_DESCRIPTION("Driver de acesso ao dispositivo rf (ESP32 com Chip Serial CP2102");
+MODULE_AUTHOR("DevTITANS <devtitans@icomp.ufam.edu.br> adapted by Roger");
+MODULE_DESCRIPTION("Driver de acesso ao rf (ESP32 com Chip Serial CP2102");
 MODULE_LICENSE("GPL");
 
 // Tamanho máximo de uma linha de resposta do dispositvo USB
@@ -12,9 +12,10 @@ MODULE_LICENSE("GPL");
 static int  usb_probe(struct usb_interface *ifce, const struct usb_device_id *id); // Executado quando o dispositivo é conectado na USB
 static void usb_disconnect(struct usb_interface *ifce);                            // Executado quando o dispositivo USB é desconectado da USB
 static int  usb_send_cmd(char *cmd, int param);                                    // Envia um comando via USB e espera/retorna a resposta do dispositivo (int)
-// Executado quando o arquivo /sys/kernel/rf/{sinal} é lido (e.g., cat /sys/kernel/rf/sinal)
+
+// Executado quando o arquivo /sys/kernel/rf/sinal é lido (e.g., cat /sys/kernel/rf/sinal)
 static ssize_t attr_show(struct kobject *sys_obj, struct kobj_attribute *attr, char *buff);
-// Executado quando o arquivo /sys/kernel/rf/{sinal} é escrito (e.g., echo "100" | sudo tee -a /sys/kernel/rf/sinal)
+// Executado quando o arquivo /sys/kernel/rf/sinal é escrito (e.g., echo "100" | sudo tee -a /sys/kernel/rf/sinal)
 static ssize_t attr_store(struct kobject *sys_obj, struct kobj_attribute *attr, const char *buff, size_t count);
 
 static char recv_line[MAX_RECV_LINE];              // Armazena dados vindos da USB até receber um caractere de nova linha '\n'
@@ -23,7 +24,7 @@ static uint usb_in, usb_out;                       // Endereços das portas de e
 static char *usb_in_buffer, *usb_out_buffer;       // Buffers de entrada e saída da USB
 static int usb_max_size;                           // Tamanho máximo de uma mensagem USB
 
-// Variáveis para criar os arquivos no /sys/kernel/rf/{sinal}
+// Variáveis para criar os arquivos no /sys/kernel/rf/sinal
 static struct kobj_attribute  sinal_attribute = __ATTR(sinal, S_IRUGO | S_IWUSR, attr_show, attr_store);
 static struct attribute      *attrs[]       = { &sinal_attribute.attr, NULL };
 static struct attribute_group attr_group    = { .attrs = attrs };
@@ -48,7 +49,7 @@ module_usb_driver(rf_driver);
 static int usb_probe(struct usb_interface *interface, const struct usb_device_id *id) {
     struct usb_endpoint_descriptor *usb_endpoint_in, *usb_endpoint_out;
 
-    printk(KERN_INFO "rf: Dispositivo conectado!\n");
+    printk(KERN_INFO "rf: Dispositivo conectado ...\n");
 
     // Cria arquivos do /sys/kernel/rf/*
     sys_obj = kobject_create_and_add("rf", kernel_kobj);
@@ -68,24 +69,24 @@ static int usb_probe(struct usb_interface *interface, const struct usb_device_id
 
 // Executado quando o dispositivo USB é desconectado da USB
 static void usb_disconnect(struct usb_interface *interface) {
-    printk(KERN_INFO "rf: Dispositivo desconectado!\n");
+    printk(KERN_INFO "rf: Dispositivo desconectado.\n");
     if (sys_obj) kobject_put(sys_obj);      // Remove os arquivos em /sys/kernel/rf
     kfree(usb_in_buffer);                   // Desaloca buffers
     kfree(usb_out_buffer);
 }
 
 // Envia um comando via USB, espera e retorna a resposta do dispositivo (convertido para int)
-// Exemplo de Comando:  SET_sinal 80
-// Exemplo de Resposta: RES SET_sinal 1
+// Exemplo de Comando:  SET_SIGNAL 80
+// Exemplo de Resposta: RES SET_SIGNAL 1
 static int usb_send_cmd(char *cmd, int param) {
     int recv_size = 0;                      // Quantidade de caracteres no recv_line
     int ret, actual_size, i;
     int retries = 10;                       // Tenta algumas vezes receber uma resposta da USB. Depois desiste.
     char resp_expected[MAX_RECV_LINE];      // Resposta esperada do comando
     char *resp_pos;                         // Posição na linha lida que contém o número retornado pelo dispositivo
-    long resp_number = -1;                  // Número retornado pelo dispositivo (e.g., valor do sinal, valor do ldr)
+    long resp_number = -1;                  // Número retornado pelo dispositivo (e.g., valor do sinal)
 
-    printk(KERN_INFO "rf: Enviando comando: %s\n", cmd);
+    printk(KERN_INFO "rf: Enviando comando: %s %d\n", cmd, param);
 
     if (param >= 0) sprintf(usb_out_buffer, "%s %d\n", cmd, param); // Se param >=0, o comando possui um parâmetro (int)
     else sprintf(usb_out_buffer, "%s\n", cmd);                      // Caso contrário, é só o comando mesmo
@@ -139,21 +140,21 @@ static int usb_send_cmd(char *cmd, int param) {
     return -1; // Não recebi a resposta esperada do dispositivo
 }
 
-// Executado quando o arquivo /sys/kernel/rf/{sinal, ldr, threshold} é lido (e.g., cat /sys/kernel/rf/sinal)
+// Executado quando o arquivo /sys/kernel/rf/sinal é lido (e.g., cat /sys/kernel/rf/sinal)
 static ssize_t attr_show(struct kobject *sys_obj, struct kobj_attribute *attr, char *buff) {
-    int value;
+    int value = 0;
     const char *attr_name = attr->attr.name;
 
     printk(KERN_INFO "rf: Lendo %s ...\n", attr_name);
 
     if (!strcmp(attr_name, "sinal"))
-        value = usb_send_cmd("GET_SINAL", -1);
+        value = usb_send_cmd("READ_FILE", -1);
 
-    sprintf(buff, "%d\n", value);                   // Cria a mensagem com o valor do sinal
+    sprintf(buff, "%d\n", value);              
     return strlen(buff);
 }
 
-// Executado quando o arquivo /sys/kernel/rf/{sinal} é escrito (e.g., echo "100" | sudo tee -a /sys/kernel/rf/sinal)
+// Executado quando o arquivo /sys/kernel/rf/sinal é escrito (e.g., echo "100" | sudo tee -a /sys/kernel/rf/sinal)
 static ssize_t attr_store(struct kobject *sys_obj, struct kobj_attribute *attr, const char *buff, size_t count) {
     long ret, value;
     const char *attr_name = attr->attr.name;
@@ -167,7 +168,8 @@ static ssize_t attr_store(struct kobject *sys_obj, struct kobj_attribute *attr, 
     printk(KERN_INFO "rf: Setando %s para %ld ...\n", attr_name, value);
 
     if (!strcmp(attr_name, "sinal"))
-        ret = usb_send_cmd("SET_SINAL", value);
+        ret = usb_send_cmd("SEND_SIGNAL", value);
+
     if (ret < 0) {
         printk(KERN_ALERT "rf: erro ao setar o valor do %s.\n", attr_name);
         return -EACCES;
