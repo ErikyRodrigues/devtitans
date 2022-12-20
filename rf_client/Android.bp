@@ -1,0 +1,9 @@
+cc_binary {
+    name:         "rf_client",
+    srcs:         [ "rf_client.cpp" ],
+
+    shared_libs:  [ "rf_lib" ],
+    required:     [ "rf_lib" ],
+
+    vendor: true,
+}
