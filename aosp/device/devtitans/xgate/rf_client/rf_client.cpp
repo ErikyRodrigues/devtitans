@@ -9,7 +9,7 @@ void RfClient::start(int argc, char **argv) {
 
     if (argc < 2) {
         cout << "Sintaxe: " << argv[0] << "  " << endl;
-        cout << "    Comando: enviarSinal" << endl;
+        cout << "    Comando: enviarSinal xx" << endl;
         exit(1);
     }
 
@@ -19,7 +19,7 @@ void RfClient::start(int argc, char **argv) {
     if (!strcmp(argv[1], "enviarSinal")) {
         int valorSinal = atoi(argv[2]);
         if (rf.enviarSinal(valorSinal))
-            cout << "Valor do sinal recebido" << valorSinal << endl;
+            cout << "Valor do sinal recebido: " << valorSinal << endl;
         else
             cout << "Erro ao receber sinal" << endl;
     } else {

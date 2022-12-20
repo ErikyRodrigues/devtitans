@@ -23,4 +23,5 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGE_OVERLAYS = device/devtitans/xgate/overlay
 
 PRODUCT_PACKAGES += \
-    hello_c
+    rf_lib \
+    rf_client
