@@ -1,0 +1,9 @@
+cc_binary {
+    name: "rf_service_client",
+    srcs: ["rf_service_client.cpp"],
+    vendor: true,
+    shared_libs: [
+        "libbinder_ndk",
+        "devtitans.rf-V1-ndk_platform",
+    ]
+}
