@@ -1,0 +1,28 @@
+# Cria o tipo/rótulo do serviço AIDL (rotulado no arquivo service_contexts)
+type rf_service, service_manager_type, vendor_service;
+
+# Cria o tipo/rótulo do daemon (rotulado no arquivo file_contexts)
+type rf_daemon, domain;
+type rf_daemon_exec, exec_type, vendor_file_type, file_type;
+
+# Permissões
+init_daemon_domain(rf_daemon);                        # O daemon será iniciado pelo init
+vndbinder_use(rf_daemon);                             # O daemon usará o binder
+allow rf_daemon servicemanager:binder { call transfer };
+
+add_service(rf_daemon, rf_service)             # O daemon irá criar o serviço do rf
+
+# Permite acesso aos arquivos do /sys
+allow rf_daemon sysfs:file { getattr open read write };
+
+# Cria e Permite leitura da propriedades de sistema do rf
+vendor_public_prop(vendor_rf_prop)
+allow rf_daemon vendor_rf_prop:file { open getattr map read };
+
+# Permite que apps privilegiados acessem o daemon e o serviço
+allow platform_app rf_daemon:binder call;
+allow platform_app rf_service:service_manager find;
+
+# Permite que apps normais acessem o daemon e o serviço
+allow untrusted_app rf_daemon:binder call;
+allow untrusted_app rf_service:service_manager find;

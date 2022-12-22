@@ -1,0 +1,2 @@
+# Define o rótulo do serviço AIDL rf
+devtitans.rf.IRf/default  u:object_r:rf_service:s0

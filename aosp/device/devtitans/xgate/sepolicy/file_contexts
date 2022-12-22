@@ -1,0 +1,2 @@
+# Define o rótulo do daemon rf
+/vendor/bin/hw/devtitans.rf-service  u:object_r:rf_daemon_exec:s0

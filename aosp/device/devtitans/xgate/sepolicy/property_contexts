@@ -1,0 +1,2 @@
+# Define o rótulo da propriedade de sistema
+vendor.devtitans.rf.allow_simulated  u:object_r:vendor_rf_prop:s0
