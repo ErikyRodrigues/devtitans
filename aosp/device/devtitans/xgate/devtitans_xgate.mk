@@ -27,7 +27,8 @@ PRODUCT_PACKAGES += \
     rf_client \
     rf_service_client \
     devtitans.rf \
-    devtitans.rf-service
+    devtitans.rf-service \
+    devtitans.rfmanager
 
 BOARD_SEPOLICY_DIRS += device/devtitans/xgate/sepolicy
 
